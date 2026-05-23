@@ -72,14 +72,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Astro Services — Premium Electronics Store in Nigeria" },
+      { name: "description", content: "Shop premium phones, laptops, audio, gaming and smart devices at unbeatable prices. Free delivery nationwide." },
+      { name: "author", content: "Astro Services" },
+      { property: "og:title", content: "Astro Services — Premium Electronics Store" },
+      { property: "og:description", content: "Your one-stop hub for premium electronics. Free delivery, warranty, 24/7 support." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:site", content: "@AstroServices" },
     ],
     links: [
       {

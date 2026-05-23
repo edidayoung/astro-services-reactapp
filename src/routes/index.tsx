@@ -1,26 +1,35 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Navbar } from "@/components/site/Navbar";
+import { Hero } from "@/components/site/Hero";
+import { TrustStrip } from "@/components/site/TrustStrip";
+import { Categories } from "@/components/site/Categories";
+import { LatestProducts } from "@/components/site/LatestProducts";
+import { Testimonials } from "@/components/site/Testimonials";
+import { WhyShop } from "@/components/site/WhyShop";
+import { Newsletter } from "@/components/site/Newsletter";
+import { Footer } from "@/components/site/Footer";
+import { WhatsAppFab } from "@/components/site/WhatsAppFab";
 
 export const Route = createFileRoute("/")({
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
+function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen">
+      <Navbar />
+      <main>
+        <Hero />
+        <TrustStrip />
+        <Categories />
+        {/* Empty by default — wire up your DB and pass `products` prop */}
+        <LatestProducts />
+        <Testimonials />
+        <WhyShop />
+        <Newsletter />
+      </main>
+      <Footer />
+      <WhatsAppFab />
     </div>
   );
-}
-
-function Index() {
-  return <PlaceholderIndex />;
 }
