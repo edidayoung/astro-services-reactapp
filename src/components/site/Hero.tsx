@@ -1,63 +1,102 @@
-import { motion } from "framer-motion";
-import { Truck, ShieldCheck, Headset, ArrowRight, MessageCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroImg from "@/assets/hero-products.png";
+import { useState, useEffect } from "react";
 
-const trustItems = [
-  { icon: Truck, title: "Free Delivery", sub: "Nationwide" },
-  { icon: ShieldCheck, title: "Warranty", sub: "On Every Product" },
-  { icon: Headset, title: "24/7 Support", sub: "We're Here" },
-];
+const shopWords = ["Shop", "Plug", "Vault", "Spot", "Mart"];
 
 export function Hero() {
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentWordIndex((prev) => (prev + 1) % shopWords.length);
+    }, 3000); // Change word every 3 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <section id="home" className="relative overflow-hidden">
-      <div className="container mx-auto grid gap-12 px-4 pb-16 pt-12 lg:grid-cols-2 lg:gap-8 lg:pt-20">
-        {/* Left */}
+      <div className="container mx-auto grid gap-12 px-4 pb-16 pt-4 lg:grid-cols-2 lg:gap-8 lg:pt-8">
+        {/* Left - Updated text styling */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
           className="relative z-10 flex flex-col justify-center"
         >
-          <p className="mb-5 text-xs font-semibold tracking-[0.25em] text-primary-glow">
+          {/* Top badge - matching your main site */}
+          <p className="mb-6 text-xs font-bold tracking-[0.25em] text-purple-400 uppercase">
             PREMIUM QUALITY • BEST PRICES
           </p>
-          <h1 className="font-display text-5xl font-bold leading-[1.05] sm:text-6xl lg:text-7xl">
-            Your One-Stop Hub <br /> for Premium <br />
-            <span className="text-gradient-primary">Electronics</span>
+          
+          {/* Main heading - with animated "Shop" word */}
+          <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight mb-6">
+            <span className="text-white">Your One-Stop </span>
+            
+            {/* Animated word container - no fixed width */}
+            <span className="inline-block relative align-bottom">
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={shopWords[currentWordIndex]}
+                  initial={{ 
+                    opacity: 0,
+                    filter: "blur(10px)",
+                    scale: 0.8,
+                    x: -30
+                  }}
+                  animate={{ 
+                    opacity: 1,
+                    filter: "blur(0px)",
+                    scale: 1,
+                    x: 0
+                  }}
+                  exit={{ 
+                    opacity: 0,
+                    filter: "blur(10px)",
+                    scale: 1.2,
+                    x: 50,
+                    transition: { duration: 0.6 }
+                  }}
+                  transition={{ 
+                    duration: 0.7,
+                    ease: "easeOut"
+                  }}
+                  className="bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 bg-clip-text text-transparent inline-block"
+                >
+                  {shopWords[currentWordIndex]}
+                </motion.span>
+              </AnimatePresence>
+            </span>
+            
+            <span className="text-white"> for Premium </span>
+            <span className="bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 bg-clip-text text-transparent">
+              Electronics
+            </span>
           </h1>
-          <p className="mt-6 max-w-md text-base text-muted-foreground">
-            Discover the latest in mobile devices, laptops, gaming gear, and audio equipment at unbeatable prices.
+          
+          {/* Description with highlighted keywords - matching your main site */}
+          <p className="text-lg text-gray-400 max-w-2xl mb-8 leading-relaxed">
+            Discover the latest in mobile devices, laptops, gaming gear, and audio equipment all at unbeatable prices, with{" "}
+            <span className="text-green-400 font-semibold">free delivery</span>
+            {" "}and{" "}
+            <span className="text-orange-400 font-semibold">reliable product warranty</span>
+            {" "}on every purchase.
           </p>
 
-          {/* Trust badges */}
-          <div className="mt-8 flex flex-wrap gap-4">
-            {trustItems.map((t, i) => (
-              <motion.div
-                key={t.title}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 + i * 0.1, duration: 0.4 }}
-                className="flex items-center gap-3 rounded-xl border border-border/60 bg-surface/50 px-4 py-3 backdrop-blur"
-              >
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary-glow">
-                  <t.icon className="h-4 w-4" />
-                </div>
-                <div className="leading-tight">
-                  <div className="text-sm font-semibold">{t.title}</div>
-                  <div className="text-xs text-muted-foreground">{t.sub}</div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button variant="hero" size="xl">
-              Shop Now <ArrowRight className="h-4 w-4" />
+          {/* CTA Buttons - Updated aesthetic */}
+          <div className="flex flex-wrap gap-4">
+            <Button 
+              className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold px-8 py-6 text-base rounded-lg shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 transition-all duration-300 border-0"
+            >
+              Shop Now <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Button variant="glass" size="xl">
-              <MessageCircle className="h-4 w-4" /> Chat on WhatsApp
+            <Button 
+              className="bg-transparent border-2 border-white/20 hover:border-white/40 hover:bg-white/5 text-white font-semibold px-8 py-6 text-base rounded-lg backdrop-blur-sm transition-all duration-300"
+            >
+              <MessageCircle className="mr-2 h-5 w-5" /> Chat on WhatsApp
             </Button>
           </div>
         </motion.div>

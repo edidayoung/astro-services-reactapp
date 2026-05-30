@@ -94,6 +94,7 @@
   }
   html {
     color-scheme: dark;
+    scroll-padding-top: 6rem; /* Account for sticky navbar height (80px + some padding) */
   }
   body {
     background-color: var(--color-background);
