@@ -534,3 +534,24 @@ export function getDisplayName(value: string): string {
   };
   return displayNames[value] || value;
 }
+
+// Icon helper for subcategories (returns lucide-react icon component)
+import { Tag, Apple, Bot, Gamepad, Briefcase, DollarSign, Headphones as HeadphonesIcon, Speaker, Plug, Battery, Package } from 'lucide-react';
+
+export function getIconForSubcategory(subcategory: string) {
+  const icons: Record<string, any> = {
+    'all': Tag,
+    'ios': Apple,
+    'android': Bot,
+    'gaming': Gamepad,
+    'business': Briefcase,
+    'budget': DollarSign,
+    'earbuds': HeadphonesIcon,
+    'headphones': HeadphonesIcon,
+    'speakers': Speaker,
+    'chargers': Plug,
+    'power-banks': Battery,
+    'others': Package
+  };
+  return icons[subcategory] || Tag;
+}

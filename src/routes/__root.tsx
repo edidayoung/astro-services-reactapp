@@ -7,7 +7,10 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { Toaster } from "sonner";
 
+import { CartProvider } from "@/lib/contexts/CartContext";
+import { CartModal } from "@/components/site/CartModal";
 import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
@@ -126,7 +129,21 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <CartProvider>
+        <Toaster 
+          position="top-right"
+          duration={2000}
+          toastOptions={{
+            style: {
+              background: 'oklch(0.21 0.04 280)',
+              color: 'oklch(0.98 0.005 280)',
+              border: '1px solid oklch(0.3 0.04 280 / 0.6)',
+            },
+          }}
+        />
+        <Outlet />
+        <CartModal />
+      </CartProvider>
     </QueryClientProvider>
   );
 }

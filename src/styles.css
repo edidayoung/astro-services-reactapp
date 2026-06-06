@@ -141,3 +141,22 @@
 @utility hero-glow {
   background: var(--gradient-hero-glow);
 }
+
+/* Marquee Animations for Reviews */
+@keyframes marquee-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@utility animate-marquee-left {
+  animation: marquee-left 40s linear infinite;
+}
+
+/* Pause animation on hover */
+.marquee-container:hover .animate-marquee-left {
+  animation-play-state: paused;
+}

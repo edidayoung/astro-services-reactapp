@@ -4,14 +4,17 @@ import { Footer } from "@/components/site/Footer";
 import { WhatsAppFab } from "@/components/site/WhatsAppFab";
 import { ProductCard } from "@/components/site/ProductCard";
 import { SubcategoryTabs } from "@/components/site/SubcategoryTabs";
-import { FilterSidebar } from "@/components/site/FilterSidebar";
+import { BrandPills } from "@/components/site/BrandPills";
+import { FilterDropdown } from "@/components/site/FilterDropdown";
+import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
-import { Smartphone, Laptop, Headphones, Package, Wrench, ArrowLeft, MessageCircle, CheckCircle } from "lucide-react";
+import { Smartphone, Laptop, Headphones, Package, Wrench, MessageCircle, CheckCircle } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState, useMemo } from "react";
-import { mockProducts, subcategoryConfig, mockRepairCases } from "@/lib/mock-data";
+import { useProductsByCategory } from "@/lib/hooks/useProducts";
+import { subcategoryConfig, mockRepairCases, androidBrands } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/category/$categoryId")({
   component: CategoryPage,
@@ -58,32 +61,65 @@ const categoryData: Record<string, {
 function CategoryPage() {
   const { categoryId } = Route.useParams();
   
-  // Special handling for AstroFix
-  if (categoryId === 'astrofix') {
-    return <AstroFixPage />;
-  }
-  
   const category = categoryData[categoryId] || categoryData.smartphones;
   const Icon = category.icon;
 
-  // Filter States
+  // Filter States - ALL HOOKS MUST BE CALLED BEFORE ANY EARLY RETURNS
   const [activeSubcategory, setActiveSubcategory] = useState('all');
-  const [selectedBrand, setSelectedBrand] = useState('all');
+  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('default');
+  const [minPrice, setMinPrice] = useState<number | null>(null);
+  const [maxPrice, setMaxPrice] = useState<number | null>(null);
   
-  // Get all products for this category
-  const categoryProducts = mockProducts.filter(p => p.category === categoryId);
-  
-  // Calculate price range
-  const prices = categoryProducts.map(p => p.onSale && p.salePrice ? p.salePrice : p.price);
-  const minPrice = Math.min(...prices, 0);
-  const maxPrice = Math.max(...prices, 0);
-  const [priceRange, setPriceRange] = useState<[number, number]>([minPrice, maxPrice]);
+  // Fetch products from Firebase
+  const { data: categoryProducts = [], isLoading, error } = useProductsByCategory(categoryId);
 
   // Get subcategories for this category
   const subcategories = subcategoryConfig[categoryId as keyof typeof subcategoryConfig] || ['all'];
 
-  // Filter and sort products
+  // Calculate product counts for each subcategory
+  const subcategoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    subcategories.forEach(sub => {
+      if (sub === 'all') {
+        counts[sub] = categoryProducts.length;
+      } else {
+        counts[sub] = categoryProducts.filter(p => p.subcategory === sub).length;
+      }
+    });
+    return counts;
+  }, [categoryProducts, subcategories]);
+
+  // Calculate brand counts (for Android smartphones)
+  const brandCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    if (categoryId === 'smartphones') {
+      const androidProducts = categoryProducts.filter(p => p.subcategory === 'android');
+      const brands = ['all', ...androidBrands.filter(b => b !== 'all')];
+      brands.forEach(brand => {
+        if (brand === 'all') {
+          counts[brand] = androidProducts.length;
+        } else {
+          counts[brand] = androidProducts.filter(p => p.brand === brand).length;
+        }
+      });
+    }
+    return counts;
+  }, [categoryProducts, categoryId]);
+
+  // Get price range from products
+  const priceRange = useMemo(() => {
+    if (categoryProducts.length === 0) {
+      return { min: 0, max: 2000000 };
+    }
+    const prices = categoryProducts.map(p => (p.onSale && p.salePrice) ? p.salePrice : p.price);
+    return {
+      min: Math.floor(Math.min(...prices)),
+      max: Math.ceil(Math.max(...prices))
+    };
+  }, [categoryProducts]);
+
+  // Filter products
   const filteredProducts = useMemo(() => {
     let filtered = [...categoryProducts];
 
@@ -92,126 +128,156 @@ function CategoryPage() {
       filtered = filtered.filter(p => p.subcategory === activeSubcategory);
     }
 
-    // Filter by brand (for Android smartphones)
-    if (categoryId === 'smartphones' && activeSubcategory === 'android' && selectedBrand !== 'all') {
+    // Filter by brand (Android smartphones only)
+    if (selectedBrand && selectedBrand !== 'all') {
       filtered = filtered.filter(p => p.brand === selectedBrand);
     }
 
     // Filter by price range
-    filtered = filtered.filter(p => {
-      const price = p.onSale && p.salePrice ? p.salePrice : p.price;
-      return price >= priceRange[0] && price <= priceRange[1];
-    });
+    if (minPrice !== null || maxPrice !== null) {
+      filtered = filtered.filter(p => {
+        const price = (p.onSale && p.salePrice) ? p.salePrice : p.price;
+        if (minPrice !== null && price < minPrice) return false;
+        if (maxPrice !== null && price > maxPrice) return false;
+        return true;
+      });
+    }
 
     // Sort products
-    switch (sortBy) {
-      case 'price-low-high':
-        filtered.sort((a, b) => {
-          const priceA = a.onSale && a.salePrice ? a.salePrice : a.price;
-          const priceB = b.onSale && b.salePrice ? b.salePrice : b.price;
-          return priceA - priceB;
-        });
-        break;
-      case 'price-high-low':
-        filtered.sort((a, b) => {
-          const priceA = a.onSale && a.salePrice ? a.salePrice : a.price;
-          const priceB = b.onSale && b.salePrice ? b.salePrice : b.price;
-          return priceB - priceA;
-        });
-        break;
-      case 'newest':
-        filtered.sort((a, b) => b.createdAt - a.createdAt);
-        break;
-      default:
-        // Default sorting (as defined in mock data)
-        break;
+    if (sortBy === 'price-asc') {
+      filtered.sort((a, b) => a.price - b.price);
+    } else if (sortBy === 'price-desc') {
+      filtered.sort((a, b) => b.price - a.price);
+    } else if (sortBy === 'date-desc') {
+      filtered.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     }
 
     return filtered;
-  }, [categoryProducts, activeSubcategory, selectedBrand, priceRange, sortBy, categoryId]);
+  }, [categoryProducts, activeSubcategory, selectedBrand, sortBy, minPrice, maxPrice]);
 
   // Reset brand when subcategory changes
   const handleSubcategoryChange = (subcategory: string) => {
     setActiveSubcategory(subcategory);
-    setSelectedBrand('all');
+    if (subcategory !== 'android') {
+      setSelectedBrand(null);
+    }
   };
+
+  // Clear all filters
+  const handleClearFilters = () => {
+    setActiveSubcategory('all');
+    setSelectedBrand(null);
+    setSortBy('default');
+    setMinPrice(null);
+    setMaxPrice(null);
+  };
+
+  // Special handling for AstroFix - AFTER all hooks
+  if (categoryId === 'astrofix') {
+    return <AstroFixPage />;
+  }
 
   return (
     <div className="min-h-screen">
       <Navbar />
-      <main className="container mx-auto px-4 py-12">
-        {/* Back Button */}
-        <Link to="/">
-          <Button variant="ghost" className="mb-8 group">
-            <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
-            Back to Home
-          </Button>
-        </Link>
+      <main className="container mx-auto px-4 py-8">
+        {/* Breadcrumb */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-8 flex items-center gap-2 text-sm"
+        >
+          <Link to="/" className="text-muted-foreground hover:text-purple-400 transition-colors">
+            Home
+          </Link>
+          <span className="text-muted-foreground">›</span>
+          <span className="text-purple-400 font-medium">{category.title}</span>
+        </motion.div>
 
-        {/* Category Header */}
+        {/* Category Header - Clean and Simple */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mb-8"
+          className="mb-12 text-center"
         >
-          <div className="flex items-center gap-4 mb-6">
-            <div className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${category.color} shadow-lg`}>
-              <Icon className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold font-display">{category.title}</h1>
-              <p className="text-muted-foreground mt-1">{category.description}</p>
-            </div>
-          </div>
-
-          {/* Subcategory Tabs */}
-          <SubcategoryTabs
-            subcategories={subcategories}
-            activeSubcategory={activeSubcategory}
-            onSubcategoryChange={handleSubcategoryChange}
-          />
+          {/* Title with inline icon - centered */}
+          <h1 className="text-4xl font-bold font-display mb-4 flex items-center justify-center gap-3">
+            <Icon className="h-8 w-8 text-purple-400" />
+            {category.title}
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{category.description}</p>
         </motion.div>
 
-        {/* Main Content with Sidebar */}
-        <div className="flex gap-8">
-          {/* Filter Sidebar */}
-          <aside className="w-full lg:w-64 flex-shrink-0">
-            <FilterSidebar
-              category={categoryId}
-              subcategory={activeSubcategory}
-              selectedBrand={selectedBrand}
-              onBrandChange={setSelectedBrand}
-              priceRange={priceRange}
-              onPriceRangeChange={setPriceRange}
-              sortBy={sortBy}
-              onSortChange={setSortBy}
-              minPrice={minPrice}
-              maxPrice={maxPrice}
-            />
-          </aside>
+        {/* Loading State */}
+        {isLoading && (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="rounded-2xl border border-border/50 bg-surface/30 backdrop-blur p-5">
+                <Skeleton className="aspect-square w-full mb-4" />
+                <Skeleton className="h-4 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-6 w-1/2" />
+              </div>
+            ))}
+          </div>
+        )}
 
-          {/* Products Grid */}
-          <div className="flex-1">
-            {/* Results Count */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="mb-6"
-            >
-              <p className="text-sm text-muted-foreground">
-                Showing <span className="font-semibold text-foreground">{filteredProducts.length}</span> products
-              </p>
-            </motion.div>
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-12">
+            <p className="text-red-400 mb-4">Failed to load products</p>
+            <p className="text-sm text-muted-foreground">{error.message}</p>
+          </div>
+        )}
 
-            {/* Products */}
-            {filteredProducts.length > 0 ? (
-              <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+        {/* Modern Two-Tier Filtering System */}
+        {!isLoading && !error && categoryProducts.length > 0 && (
+          <>
+            <div className="space-y-6 mb-12">
+              {/* Row 1: Subcategory Tabs with Sort Button */}
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1 flex justify-center">
+                  <SubcategoryTabs
+                    subcategories={subcategories}
+                    activeSubcategory={activeSubcategory}
+                    onSubcategoryChange={handleSubcategoryChange}
+                    productCounts={subcategoryCounts}
+                  />
+                </div>
+                <FilterDropdown
+                  sortBy={sortBy}
+                  onSortChange={setSortBy}
+                  productCount={filteredProducts.length}
+                  hasActiveFilters={selectedBrand !== null || sortBy !== 'default'}
+                  onClearFilters={handleClearFilters}
+                />
+              </div>
+
+              {/* Row 2: Brand Pills (Only for Android Smartphones) */}
+              {categoryId === 'smartphones' && activeSubcategory === 'android' && (
+                <BrandPills
+                  brands={['all', ...androidBrands.filter(b => b !== 'all')]}
+                  selectedBrand={selectedBrand}
+                  onBrandChange={setSelectedBrand}
+                  brandCounts={brandCounts}
+                  maxVisible={7}
+                />
+              )}
+            </div>
+
+            {/* Products Grid - 4 columns like New Arrivals */}
+            {filteredProducts.length > 0 && (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {filteredProducts.map((product, index) => (
                   <ProductCard key={product.id} product={product} index={index} />
                 ))}
               </div>
-            ) : (
+            )}
+
+            {/* Empty State - Show when filtered results are empty */}
+            {filteredProducts.length === 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -223,20 +289,15 @@ function CategoryPage() {
                   Try adjusting your filters or check back later
                 </p>
                 <Button
-                  onClick={() => {
-                    setActiveSubcategory('all');
-                    setSelectedBrand('all');
-                    setPriceRange([minPrice, maxPrice]);
-                    setSortBy('default');
-                  }}
+                  onClick={handleClearFilters}
                   variant="outline"
                 >
                   Reset Filters
                 </Button>
               </motion.div>
             )}
-          </div>
-        </div>
+          </>
+        )}
       </main>
       <Footer />
       <WhatsAppFab />
@@ -289,13 +350,19 @@ function AstroFixPage() {
     <div className="min-h-screen">
       <Navbar />
       <main className="container mx-auto px-4 py-12">
-        {/* Back Button */}
-        <Link to="/">
-          <Button variant="ghost" className="mb-8 group">
-            <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
-            Back to Home
-          </Button>
-        </Link>
+        {/* Breadcrumb */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-8 flex items-center gap-2 text-sm"
+        >
+          <Link to="/" className="text-muted-foreground hover:text-purple-400 transition-colors">
+            Home
+          </Link>
+          <span className="text-muted-foreground">›</span>
+          <span className="text-green-400 font-medium">AstroFix</span>
+        </motion.div>
 
         {/* Header */}
         <motion.div
