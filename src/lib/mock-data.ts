@@ -491,7 +491,7 @@ export const subcategoryConfig = {
   smartphones: ['all', 'ios', 'android'],
   laptops: ['all', 'gaming', 'business', 'budget'],
   audio: ['all', 'earbuds', 'headphones', 'speakers'],
-  accessories: ['all', 'chargers', 'power-banks', 'others']
+  accessories: ['all', 'chargers', 'power-banks', 'fans', 'others']
 };
 
 // Android Brands (matching subcategory-config.js)
@@ -521,7 +521,7 @@ export const laptopBrands = [
   'lenovo',
   'msi',
   'alienware',
-  'fairly-used'
+  'others'
 ];
 
 // Display name helper
@@ -538,6 +538,7 @@ export function getDisplayName(value: string): string {
     'speakers': 'Speakers',
     'chargers': 'Chargers',
     'power-banks': 'Power Banks',
+    'fans': 'Fans',
     'others': 'Others',
     // Android brands
     'tecno': 'Tecno',
@@ -560,13 +561,14 @@ export function getDisplayName(value: string): string {
     'msi': 'MSI',
     'alienware': 'Alienware',
     // Common
-    'fairly-used': 'Fairly Used'
+    'fairly-used': 'Fairly Used',
+    'others': 'Others'
   };
   return displayNames[value] || value;
 }
 
 // Icon helper for subcategories (returns lucide-react icon component)
-import { Tag, Apple, Bot, Gamepad, Briefcase, DollarSign, Headphones as HeadphonesIcon, Speaker, Plug, Battery, Package } from 'lucide-react';
+import { Tag, Apple, Bot, Gamepad, Briefcase, DollarSign, Headphones as HeadphonesIcon, Speaker, Plug, Battery, Fan, Package } from 'lucide-react';
 
 export function getIconForSubcategory(subcategory: string) {
   const icons: Record<string, any> = {
@@ -581,6 +583,7 @@ export function getIconForSubcategory(subcategory: string) {
     'speakers': Speaker,
     'chargers': Plug,
     'power-banks': Battery,
+    'fans': Fan,
     'others': Package
   };
   return icons[subcategory] || Tag;

@@ -123,7 +123,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
             {product.name}
           </h3>
 
-          <p className="mb-3 line-clamp-2 text-xs text-muted-foreground">
+          <p className="mb-3 line-clamp-2 text-xs text-muted-foreground whitespace-pre-line">
             {product.description}
           </p>
 

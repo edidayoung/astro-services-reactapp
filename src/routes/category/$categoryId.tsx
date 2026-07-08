@@ -128,13 +128,20 @@ function CategoryPage() {
         }
       });
     } else if (categoryId === 'laptops') {
-      // Laptops - don't filter by subcategory, show all laptop brands
+      // Laptops - filter by subcategory for brand counts
+      let laptopProducts = categoryProducts;
+      
+      // If a specific subcategory is selected (not 'all'), filter by it
+      if (activeSubcategory !== 'all') {
+        laptopProducts = categoryProducts.filter(p => p.subcategory === activeSubcategory);
+      }
+      
       const brands = ['all', ...laptopBrands.filter(b => b !== 'all')];
       brands.forEach(brand => {
         if (brand === 'all') {
-          counts[brand] = categoryProducts.length;
+          counts[brand] = laptopProducts.length;
         } else {
-          counts[brand] = categoryProducts.filter(p => p.brand === brand).length;
+          counts[brand] = laptopProducts.filter(p => p.brand === brand).length;
         }
       });
     }
@@ -328,7 +335,13 @@ function CategoryPage() {
                         {(categoryId === 'smartphones' 
                           ? ['all', ...androidBrands.filter(b => b !== 'all')]
                           : ['all', ...laptopBrands.filter(b => b !== 'all')]
-                        ).map((brand) => {
+                        )
+                          .filter(brand => {
+                            // Only show brands that have products
+                            const count = brandCounts[brand] || 0;
+                            return count > 0;
+                          })
+                          .map((brand) => {
                           const isActive = selectedBrand === brand || (brand === 'all' && !selectedBrand);
                           const count = brandCounts[brand] || 0;
                           

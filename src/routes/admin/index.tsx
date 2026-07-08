@@ -1,24 +1,20 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { AuthGuard } from '@/components/admin/AuthGuard';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { AdminLayout } from '@/components/admin/AdminLayout';
 import { useProducts } from '@/lib/hooks/useProducts';
 import { useReviews } from '@/lib/hooks/useReviews';
 import { motion } from 'framer-motion';
 import { 
   Package, 
   MessageSquare, 
-  Wrench, 
-  Clock, 
-  LogOut,
-  Home,
-  Settings,
-  TrendingUp,
+  Wrench,
   AlertCircle,
   CheckCircle,
   PackageX,
   Plus,
   ArrowRight,
-  Activity
+  Activity,
+  TrendingUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,13 +28,14 @@ export const Route = createFileRoute('/admin/')({
 function AdminDashboard() {
   return (
     <AuthGuard>
-      <DashboardContent />
+      <AdminLayout>
+        <DashboardContent />
+      </AdminLayout>
     </AuthGuard>
   );
 }
 
 function DashboardContent() {
-  const { logout, sessionTimeRemaining } = useAuth();
   const { data: products, isLoading: productsLoading } = useProducts();
   const { data: reviews, isLoading: reviewsLoading } = useReviews();
 
@@ -70,81 +67,7 @@ function DashboardContent() {
   const recentProducts = products?.slice(0, 5) || [];
 
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Sidebar */}
-      <aside className="hidden lg:flex w-64 flex-col border-r border-border/50 bg-surface/30">
-        {/* Logo */}
-        <div className="flex h-16 items-center gap-3 border-b border-border/50 px-6">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-blue-500">
-            <Package className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-sm font-bold">Admin Portal</h1>
-            <p className="text-xs text-muted-foreground">Astro Services</p>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 space-y-1 p-4">
-          <Button variant="ghost" className="w-full justify-start gap-3 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300">
-            <Home className="h-4 w-4" />
-            Dashboard
-          </Button>
-          <Button variant="ghost" className="w-full justify-start gap-3 hover:bg-surface">
-            <Package className="h-4 w-4" />
-            Products
-          </Button>
-          <Button variant="ghost" className="w-full justify-start gap-3 hover:bg-surface">
-            <MessageSquare className="h-4 w-4" />
-            Reviews
-            {pendingReviews > 0 && (
-              <Badge variant="destructive" className="ml-auto">{pendingReviews}</Badge>
-            )}
-          </Button>
-          <Button variant="ghost" className="w-full justify-start gap-3 hover:bg-surface">
-            <Wrench className="h-4 w-4" />
-            Repairs
-          </Button>
-          <Button variant="ghost" className="w-full justify-start gap-3 hover:bg-surface">
-            <Settings className="h-4 w-4" />
-            Settings
-          </Button>
-        </nav>
-
-        {/* Session Info */}
-        <div className="border-t border-border/50 p-4">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-            <Clock className="h-3 w-3" />
-            Session: {formatTime(sessionTimeRemaining)}
-          </div>
-          <Button
-            onClick={logout}
-            variant="outline"
-            size="sm"
-            className="w-full gap-2 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/50 transition-colors"
-          >
-            <LogOut className="h-4 w-4" />
-            Logout
-          </Button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        {/* Top Bar - Mobile */}
-        <header className="flex lg:hidden h-16 items-center justify-between border-b border-border/50 bg-surface/30 px-4">
-          <h1 className="text-lg font-bold">Dashboard</h1>
-          <Button
-            onClick={logout}
-            variant="ghost"
-            size="sm"
-            className="hover:bg-red-500/10 hover:text-red-500"
-          >
-            <LogOut className="h-4 w-4" />
-          </Button>
-        </header>
-
-        <main className="p-4 md:p-6 lg:p-8">
+    <div className="p-4 md:p-6 lg:p-8">
           {/* Welcome Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -368,8 +291,6 @@ function DashboardContent() {
               )}
             </motion.div>
           </div>
-        </main>
-      </div>
     </div>
   );
 }
