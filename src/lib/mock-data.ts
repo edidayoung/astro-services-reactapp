@@ -33,6 +33,7 @@ export interface Review {
   comment: string;
   approved: boolean;
   createdAt: number;
+  imageUrl?: string; // Optional profile picture
 }
 
 export interface RepairCase {

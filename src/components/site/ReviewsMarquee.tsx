@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Star, MessageSquarePlus } from "lucide-react";
+import { Star, MessageSquarePlus, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -8,14 +8,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { useApprovedReviews, useSubmitReview } from "@/lib/hooks/useReviews";
 import { toast } from "sonner";
+import { uploadImageToCloudinary, validateImageFile } from "@/lib/admin/cloudinary";
 
 export function ReviewsMarquee() {
   const [formData, setFormData] = useState({
     name: "",
     rating: 5,
-    comment: ""
+    comment: "",
+    imageUrl: ""
   });
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   // Fetch approved reviews from Firebase
   const { data: approvedReviews = [], isLoading } = useApprovedReviews();
@@ -24,15 +28,53 @@ export function ReviewsMarquee() {
   // Duplicate reviews for seamless loop
   const reviewsRow = [...approvedReviews, ...approvedReviews];
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      toast.error(validation.error);
+      return;
+    }
+
+    setUploading(true);
+    
+    try {
+      const result = await uploadImageToCloudinary(file);
+      
+      setFormData(prev => ({ ...prev, imageUrl: result.url }));
+      setImagePreview(result.url);
+      toast.success("Profile picture uploaded!");
+    } catch (error) {
+      toast.error("Failed to upload image. Please try again.");
+      console.error("Image upload error:", error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData(prev => ({ ...prev, imageUrl: "" }));
+    setImagePreview(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate that image is uploaded
+    if (!formData.imageUrl) {
+      toast.error("Please upload a profile picture");
+      return;
+    }
     
     try {
       await submitReviewMutation.mutateAsync(formData);
       
       toast.success("Thank you! Your review has been submitted and is pending approval.");
       
-      setFormData({ name: "", rating: 5, comment: "" });
+      setFormData({ name: "", rating: 5, comment: "", imageUrl: "" });
+      setImagePreview(null);
       setDialogOpen(false);
     } catch (error) {
       toast.error("Failed to submit review. Please try again.");
@@ -68,6 +110,69 @@ export function ReviewsMarquee() {
                 <DialogTitle className="text-2xl font-bold">Share Your Experience</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+                {/* Profile Picture Upload - REQUIRED */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Profile Picture *
+                  </label>
+                  
+                  {!imagePreview ? (
+                    <div className="flex items-center gap-4">
+                      <label
+                        htmlFor="review-image"
+                        className="flex items-center justify-center w-20 h-20 rounded-full border-2 border-dashed border-border hover:border-purple-500 cursor-pointer transition-colors bg-surface/30"
+                      >
+                        <Upload className="h-6 w-6 text-muted-foreground" />
+                      </label>
+                      <div className="flex-1">
+                        <p className="text-xs text-muted-foreground">
+                          Upload your profile picture to verify your review
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          JPEG, PNG, WebP up to 2MB
+                        </p>
+                      </div>
+                      <input
+                        id="review-image"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleImageUpload}
+                        disabled={uploading}
+                        className="hidden"
+                        required
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <img
+                          src={imagePreview}
+                          alt="Profile preview"
+                          className="w-20 h-20 rounded-full object-cover border-2 border-purple-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleRemoveImage}
+                          disabled={uploading}
+                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors disabled:opacity-50"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-green-500">✓ Picture uploaded</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {uploading && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500" />
+                      <span>Uploading...</span>
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-2">
                   <label htmlFor="name" className="text-sm font-medium">
                     Your Name *
@@ -207,7 +312,7 @@ export function ReviewsMarquee() {
   );
 }
 
-function ReviewCard({ review }: { review: { id: string; name: string; rating: number; comment: string; approved: boolean; createdAt: number } }) {
+function ReviewCard({ review }: { review: { id: string; name: string; rating: number; comment: string; approved: boolean; createdAt: number; imageUrl?: string } }) {
   return (
     <div className="flex-shrink-0 w-[350px] rounded-2xl border border-border/50 bg-surface/80 backdrop-blur p-6 hover:border-yellow-500/30 transition-all duration-300 hover:scale-105">
       <div className="mb-4 flex items-center gap-1">
@@ -219,14 +324,27 @@ function ReviewCard({ review }: { review: { id: string; name: string; rating: nu
         "{review.comment}"
       </p>
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-primary text-white font-semibold">
-          {review.name.charAt(0)}
-        </div>
+        {review.imageUrl ? (
+          <img
+            src={review.imageUrl}
+            alt={review.name}
+            className="h-10 w-10 rounded-full object-cover border-2 border-purple-500/50"
+          />
+        ) : (
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-primary text-white font-semibold">
+            {review.name.charAt(0)}
+          </div>
+        )}
         <div>
-          <p className="font-semibold text-sm">{review.name}</p>
-          <Badge variant="secondary" className="text-xs">
-            Verified Customer
-          </Badge>
+          <div className="flex items-center gap-1">
+            <p className="font-semibold text-sm">{review.name}</p>
+            <div className="flex h-4 w-4 items-center justify-center rounded-full bg-green-500">
+              <svg className="h-2.5 w-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">Verified Customer</p>
         </div>
       </div>
     </div>

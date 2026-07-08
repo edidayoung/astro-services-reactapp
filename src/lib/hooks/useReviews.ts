@@ -20,7 +20,8 @@ async function fetchReviews(): Promise<Review[]> {
         rating: data.rating,
         comment: data.text || data.comment, // Handle both field names
         approved: data.status === 'approved', // Convert status to approved boolean
-        createdAt: data.createdAt || Date.now()
+        createdAt: data.createdAt || Date.now(),
+        imageUrl: data.imageUrl // Optional profile picture
       });
     });
     
@@ -41,19 +42,27 @@ async function submitReview(reviewData: {
   name: string;
   rating: number;
   comment: string;
+  imageUrl?: string;
 }): Promise<void> {
   try {
     console.log('Submitting review to Firebase...');
     const reviewsCollection = collection(db, 'reviews');
     
-    await addDoc(reviewsCollection, {
+    const dataToSubmit: any = {
       name: reviewData.name,
       rating: reviewData.rating,
       text: reviewData.comment,
       status: 'pending', // All new reviews start as pending
       createdAt: Date.now(),
       updatedAt: Date.now()
-    });
+    };
+    
+    // Only add imageUrl if it exists
+    if (reviewData.imageUrl) {
+      dataToSubmit.imageUrl = reviewData.imageUrl;
+    }
+    
+    await addDoc(reviewsCollection, dataToSubmit);
     
     console.log('✅ Review submitted successfully');
   } catch (error) {
