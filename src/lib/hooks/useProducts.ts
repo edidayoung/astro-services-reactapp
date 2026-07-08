@@ -90,16 +90,13 @@ export function useProducts() {
 
 // Hook to fetch products by category
 export function useProductsByCategory(category: string) {
-  const { data: allProducts, ...rest } = useProducts();
-  
-  const products = allProducts?.filter(p => 
-    p.category === category && p.inStock
-  ) || [];
-  
-  return {
-    data: products,
-    ...rest
-  };
+  return useQuery({
+    queryKey: ['products', 'category', category],
+    queryFn: fetchProducts,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    select: (data) => data.filter(p => p.category === category && p.inStock),
+  });
 }
 
 // Hook to fetch products by subcategory

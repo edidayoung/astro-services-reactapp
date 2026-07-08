@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { useApprovedReviews, useSubmitReview } from "@/lib/hooks/useReviews";
 import { toast } from "sonner";
@@ -145,10 +146,43 @@ export function ReviewsMarquee() {
         </motion.div>
       </div>
 
-      {/* Loading State */}
+      {/* Loading State - Enhanced skeleton for review cards */}
       {isLoading && (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">Loading reviews...</p>
+        <div className="relative -rotate-3">
+          <div className="flex gap-6 overflow-hidden">
+            {[...Array(3)].map((_, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.1, duration: 0.3 }}
+                className="flex-shrink-0 w-[350px] rounded-2xl border border-border/50 bg-surface/80 backdrop-blur p-6"
+              >
+                {/* Stars skeleton */}
+                <div className="mb-4 flex items-center gap-1">
+                  {[...Array(5)].map((_, j) => (
+                    <Skeleton key={j} className="h-4 w-4 rounded-full" />
+                  ))}
+                </div>
+                
+                {/* Comment skeleton */}
+                <div className="mb-4 space-y-2">
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-4/5" />
+                </div>
+                
+                {/* User info skeleton */}
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-32" />
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       )}
 

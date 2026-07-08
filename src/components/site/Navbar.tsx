@@ -12,7 +12,6 @@ import { useState, useMemo } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useCart } from "@/lib/contexts/CartContext";
 import { useAllProducts } from "@/lib/hooks/useProducts";
-import { ProductCard } from "./ProductCard";
 import type { Product } from "@/lib/mock-data";
 
 const categories = [
@@ -23,13 +22,13 @@ const categories = [
 ];
 
 const linksBeforeCategories = [
-  { label: "New Arrivals", href: "#new-arrivals", icon: Sparkles },
-  { label: "Reviews", href: "#reviews", icon: Star },
-  { label: "AstroFix", href: "/category/astrofix", icon: Wrench },
+  { label: "New Arrivals", href: "/#new-arrivals", icon: Sparkles, isHash: true },
+  { label: "Reviews", href: "/#reviews", icon: Star, isHash: true },
+  { label: "AstroFix", href: "/category/astrofix", icon: Wrench, isHash: false },
 ];
 
 const linksAfterCategories = [
-  { label: "About Us", href: "#about", icon: Info },
+  { label: "About Us", href: "/#about", icon: Info, isHash: true },
 ];
 
 export function Navbar() {
@@ -60,14 +59,35 @@ export function Navbar() {
     }).slice(0, 8); // Limit to 8 results
   }, [searchQuery, allProducts]);
 
-  // Smooth scroll to section
-  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    if (href.startsWith('#')) {
-      e.preventDefault();
-      const element = document.querySelector(href);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const navigate = useNavigate();
+
+  // Handle navigation - works for both routes and hash links
+  const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, href: string, isHash: boolean) => {
+    e.preventDefault();
+    
+    if (isHash) {
+      // If hash link, navigate to home first, then scroll
+      const hash = href.split('#')[1];
+      if (window.location.pathname === '/') {
+        // Already on home, just scroll
+        const element = document.querySelector(`#${hash}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } else {
+        // Navigate to home first
+        navigate({ to: '/' });
+        // Wait for navigation, then scroll
+        setTimeout(() => {
+          const element = document.querySelector(`#${hash}`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
       }
+    } else {
+      // Regular route navigation
+      navigate({ to: href as any });
     }
   };
 
@@ -83,8 +103,8 @@ export function Navbar() {
           {/* Logo - Now acts as Home button */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-primary shadow-glow transition-transform group-hover:scale-105">
-              <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
               </svg>
             </div>
             <div className="leading-tight">
@@ -96,47 +116,16 @@ export function Navbar() {
           {/* Desktop Navigation - with modern hover effects */}
           <nav className="ml-6 hidden items-center gap-7 lg:flex">
             {/* Links before Categories */}
-            {linksBeforeCategories.map((l, index) => {
-              const isRoute = l.href.startsWith('/');
-              
-              if (isRoute) {
-                return (
-                  <motion.div
-                    key={l.label}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1, duration: 0.3 }}
-                  >
-                    <Link
-                      to={l.href}
-                      className="group relative flex items-center gap-2 text-sm font-medium text-foreground/80 transition-all duration-300 hover:text-foreground"
-                    >
-                      {/* Background glow effect */}
-                      <span className="absolute -inset-2 -z-10 rounded-xl bg-gradient-to-r from-purple-500/0 via-purple-500/0 to-blue-500/0 opacity-0 blur-lg transition-all duration-500 group-hover:from-purple-500/20 group-hover:via-purple-500/10 group-hover:to-blue-500/20 group-hover:opacity-100" />
-                      
-                      {/* Background highlight */}
-                      <span className="absolute -inset-2 -z-10 rounded-xl bg-surface/0 transition-all duration-300 group-hover:bg-surface/60" />
-                      
-                      {/* Icon with bounce animation */}
-                      <l.icon className="h-4 w-4 text-purple-400 transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 group-hover:text-purple-300" />
-                      
-                      {/* Text */}
-                      <span className="relative">
-                        {l.label}
-                      </span>
-                    </Link>
-                  </motion.div>
-                );
-              }
-              
-              return (
-                <motion.a
-                  key={l.label}
+            {linksBeforeCategories.map((l, index) => (
+              <motion.div
+                key={l.label}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1, duration: 0.3 }}
+              >
+                <a
                   href={l.href}
-                  onClick={(e) => scrollToSection(e, l.href)}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1, duration: 0.3 }}
+                  onClick={(e) => handleNavigation(e, l.href, l.isHash)}
                   className="group relative flex items-center gap-2 text-sm font-medium text-foreground/80 transition-all duration-300 hover:text-foreground cursor-pointer"
                 >
                   {/* Background glow effect */}
@@ -152,9 +141,9 @@ export function Navbar() {
                   <span className="relative">
                     {l.label}
                   </span>
-                </motion.a>
-              );
-            })}
+                </a>
+              </motion.div>
+            ))}
             
             {/* Categories Dropdown - positioned after New Arrivals */}
             <div 
@@ -223,47 +212,16 @@ export function Navbar() {
             </div>
             
             {/* Links after Categories */}
-            {linksAfterCategories.map((l, index) => {
-              const isRoute = l.href.startsWith('/');
-              
-              if (isRoute) {
-                return (
-                  <motion.div
-                    key={l.label}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: (index + 4) * 0.1, duration: 0.3 }}
-                  >
-                    <Link
-                      to={l.href}
-                      className="group relative flex items-center gap-2 text-sm font-medium text-foreground/80 transition-all duration-300 hover:text-foreground"
-                    >
-                      {/* Background glow effect */}
-                      <span className="absolute -inset-2 -z-10 rounded-xl bg-gradient-to-r from-purple-500/0 via-purple-500/0 to-blue-500/0 opacity-0 blur-lg transition-all duration-500 group-hover:from-purple-500/20 group-hover:via-purple-500/10 group-hover:to-blue-500/20 group-hover:opacity-100" />
-                      
-                      {/* Background highlight */}
-                      <span className="absolute -inset-2 -z-10 rounded-xl bg-surface/0 transition-all duration-300 group-hover:bg-surface/60" />
-                      
-                      {/* Icon with bounce animation */}
-                      <l.icon className="h-4 w-4 text-purple-400 transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 group-hover:text-purple-300" />
-                      
-                      {/* Text */}
-                      <span className="relative">
-                        {l.label}
-                      </span>
-                    </Link>
-                  </motion.div>
-                );
-              }
-              
-              return (
-                <motion.a
-                  key={l.label}
+            {linksAfterCategories.map((l, index) => (
+              <motion.div
+                key={l.label}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: (index + 4) * 0.1, duration: 0.3 }}
+              >
+                <a
                   href={l.href}
-                  onClick={(e) => scrollToSection(e, l.href)}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: (index + 4) * 0.1, duration: 0.3 }}
+                  onClick={(e) => handleNavigation(e, l.href, l.isHash)}
                   className="group relative flex items-center gap-2 text-sm font-medium text-foreground/80 transition-all duration-300 hover:text-foreground cursor-pointer"
                 >
                   {/* Background glow effect */}
@@ -279,9 +237,9 @@ export function Navbar() {
                   <span className="relative">
                     {l.label}
                   </span>
-                </motion.a>
-              );
-            })}
+                </a>
+              </motion.div>
+            ))}
           </nav>
 
           {/* Right side actions */}
@@ -448,49 +406,27 @@ export function Navbar() {
               <SheetContent side="right" className="bg-background border-l border-border/50">
                 <nav className="mt-10 flex flex-col gap-4">
                   {/* Links before categories */}
-                  {linksBeforeCategories.map((l, index) => {
-                    const isRoute = l.href.startsWith('/');
-                    
-                    if (isRoute) {
-                      return (
-                        <motion.div
-                          key={l.label}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.1, duration: 0.3 }}
-                        >
-                          <Link
-                            to={l.href}
-                            className="group relative flex items-center gap-3 text-lg font-medium transition-all duration-300 hover:text-purple-400 hover:translate-x-2"
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            <span className="absolute -inset-3 -z-10 rounded-xl bg-surface/0 transition-all duration-300 group-hover:bg-surface/60" />
-                            <l.icon className="h-5 w-5 text-purple-400 transition-all duration-300 group-hover:scale-125 group-hover:rotate-12" />
-                            <span className="relative">{l.label}</span>
-                          </Link>
-                        </motion.div>
-                      );
-                    }
-                    
-                    return (
-                      <motion.a 
-                        key={l.label} 
+                  {linksBeforeCategories.map((l, index) => (
+                    <motion.div
+                      key={l.label}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1, duration: 0.3 }}
+                    >
+                      <a
                         href={l.href}
                         onClick={(e) => {
-                          scrollToSection(e, l.href);
+                          handleNavigation(e, l.href, l.isHash);
                           setMobileMenuOpen(false);
                         }}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1, duration: 0.3 }}
                         className="group relative flex items-center gap-3 text-lg font-medium transition-all duration-300 hover:text-purple-400 hover:translate-x-2 cursor-pointer"
                       >
                         <span className="absolute -inset-3 -z-10 rounded-xl bg-surface/0 transition-all duration-300 group-hover:bg-surface/60" />
                         <l.icon className="h-5 w-5 text-purple-400 transition-all duration-300 group-hover:scale-125 group-hover:rotate-12" />
                         <span className="relative">{l.label}</span>
-                      </motion.a>
-                    );
-                  })}
+                      </a>
+                    </motion.div>
+                  ))}
                   
                   {/* Categories Section in Mobile */}
                   <div className="border-t border-border/50 pt-4">
@@ -521,49 +457,27 @@ export function Navbar() {
                   
                   {/* Links after categories */}
                   <div className="border-t border-border/50 pt-4">
-                    {linksAfterCategories.map((l, index) => {
-                      const isRoute = l.href.startsWith('/');
-                      
-                      if (isRoute) {
-                        return (
-                          <motion.div
-                            key={l.label}
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: (index + categories.length + 1) * 0.1, duration: 0.3 }}
-                          >
-                            <Link
-                              to={l.href}
-                              className="group relative flex items-center gap-3 text-lg font-medium transition-all duration-300 hover:text-purple-400 hover:translate-x-2"
-                              onClick={() => setMobileMenuOpen(false)}
-                            >
-                              <span className="absolute -inset-3 -z-10 rounded-xl bg-surface/0 transition-all duration-300 group-hover:bg-surface/60" />
-                              <l.icon className="h-5 w-5 text-purple-400 transition-all duration-300 group-hover:scale-125 group-hover:rotate-12" />
-                              <span className="relative">{l.label}</span>
-                            </Link>
-                          </motion.div>
-                        );
-                      }
-                      
-                      return (
-                        <motion.a 
-                          key={l.label} 
+                    {linksAfterCategories.map((l, index) => (
+                      <motion.div
+                        key={l.label}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: (index + categories.length + 1) * 0.1, duration: 0.3 }}
+                      >
+                        <a
                           href={l.href}
                           onClick={(e) => {
-                            scrollToSection(e, l.href);
+                            handleNavigation(e, l.href, l.isHash);
                             setMobileMenuOpen(false);
                           }}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: (index + categories.length + 1) * 0.1, duration: 0.3 }}
                           className="group relative flex items-center gap-3 text-lg font-medium transition-all duration-300 hover:text-purple-400 hover:translate-x-2 cursor-pointer"
                         >
                           <span className="absolute -inset-3 -z-10 rounded-xl bg-surface/0 transition-all duration-300 group-hover:bg-surface/60" />
                           <l.icon className="h-5 w-5 text-purple-400 transition-all duration-300 group-hover:scale-125 group-hover:rotate-12" />
                           <span className="relative">{l.label}</span>
-                        </motion.a>
-                      );
-                    })}
+                        </a>
+                      </motion.div>
+                    ))}
                   </div>
                 </nav>
               </SheetContent>

@@ -34,24 +34,24 @@ export function SubcategoryTabs({
               stiffness: 300,
               damping: 20
             }}
-            whileHover={{ scale: 1.05, y: -2 }}
+            whileHover={{ scale: 1.03, y: -1 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => onSubcategoryChange(subcategory)}
             className={`
               group relative flex items-center gap-2.5 px-6 py-3.5 rounded-2xl font-semibold text-sm 
               transition-all duration-300 whitespace-nowrap
-              border-2
+              border
               ${isActive 
-                ? 'bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 text-white border-purple-400/50 shadow-xl shadow-purple-500/40' 
-                : 'bg-surface/40 backdrop-blur-sm text-foreground/70 border-border/30 hover:border-purple-500/40 hover:text-purple-400 hover:bg-surface/60'
+                ? 'bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 text-white border-purple-400/30 shadow-lg shadow-purple-500/25' 
+                : 'bg-surface/40 backdrop-blur-sm text-foreground/70 border-border/20 hover:border-purple-500/30 hover:text-purple-400 hover:bg-surface/60'
               }
             `}
           >
-            {/* Glow effect for active state */}
+            {/* Subtle glow effect for active state */}
             {isActive && (
               <motion.div
                 layoutId="activeSubcategory"
-                className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/20 to-indigo-600/20 blur-xl"
+                className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/10 to-indigo-600/10 blur-md"
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
               />
             )}

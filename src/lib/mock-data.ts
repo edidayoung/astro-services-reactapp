@@ -211,6 +211,7 @@ export const mockProducts: Product[] = [
     salePrice: 1750000,
     category: 'laptops',
     subcategory: 'gaming',
+    brand: 'asus',
     images: [
       { url: 'https://via.placeholder.com/400x400/dc2626/ffffff?text=ROG+Strix', isPrimary: true, order: 0 }
     ],
@@ -227,6 +228,7 @@ export const mockProducts: Product[] = [
     onSale: false,
     category: 'laptops',
     subcategory: 'gaming',
+    brand: 'msi',
     images: [
       { url: 'https://via.placeholder.com/400x400/b91c1c/ffffff?text=MSI+Katana', isPrimary: true, order: 0 }
     ],
@@ -245,6 +247,7 @@ export const mockProducts: Product[] = [
     onSale: false,
     category: 'laptops',
     subcategory: 'business',
+    brand: 'hp',
     images: [
       { url: 'https://via.placeholder.com/400x400/0369a1/ffffff?text=EliteBook', isPrimary: true, order: 0 }
     ],
@@ -262,6 +265,7 @@ export const mockProducts: Product[] = [
     salePrice: 680000,
     category: 'laptops',
     subcategory: 'business',
+    brand: 'dell',
     images: [
       { url: 'https://via.placeholder.com/400x400/0284c7/ffffff?text=Latitude', isPrimary: true, order: 0 }
     ],
@@ -280,6 +284,7 @@ export const mockProducts: Product[] = [
     onSale: false,
     category: 'laptops',
     subcategory: 'budget',
+    brand: 'hp',
     images: [
       { url: 'https://via.placeholder.com/400x400/0891b2/ffffff?text=HP+15s', isPrimary: true, order: 0 }
     ],
@@ -505,6 +510,20 @@ export const androidBrands = [
   'fairly-used'
 ];
 
+// Laptop Brands
+export const laptopBrands = [
+  'all',
+  'apple',
+  'hp',
+  'dell',
+  'asus',
+  'acer',
+  'lenovo',
+  'msi',
+  'alienware',
+  'fairly-used'
+];
+
 // Display name helper
 export function getDisplayName(value: string): string {
   const displayNames: Record<string, string> = {
@@ -513,13 +532,14 @@ export function getDisplayName(value: string): string {
     'android': 'Android',
     'gaming': 'Gaming',
     'business': 'Business',
-    'budget': 'Budget',
+    'budget': 'Budget (₦0 - ₦400k)',
     'earbuds': 'Earbuds',
     'headphones': 'Headphones',
     'speakers': 'Speakers',
     'chargers': 'Chargers',
     'power-banks': 'Power Banks',
     'others': 'Others',
+    // Android brands
     'tecno': 'Tecno',
     'redmi': 'Redmi',
     'samsung-s-series': 'Samsung S Series',
@@ -530,6 +550,16 @@ export function getDisplayName(value: string): string {
     'realme': 'Realme',
     'poco': 'Poco',
     'infinix': 'Infinix',
+    // Laptop brands
+    'apple': 'Apple',
+    'hp': 'HP',
+    'dell': 'Dell',
+    'asus': 'ASUS',
+    'acer': 'Acer',
+    'lenovo': 'Lenovo',
+    'msi': 'MSI',
+    'alienware': 'Alienware',
+    // Common
     'fairly-used': 'Fairly Used'
   };
   return displayNames[value] || value;

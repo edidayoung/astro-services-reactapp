@@ -10,7 +10,7 @@ export function Footer() {
         <div>
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-primary shadow-glow">
-              <Wifi className="h-5 w-5 rotate-45 text-primary-foreground" />
+              <Wifi className="h-5 w-5 text-primary-foreground" />
             </div>
             <div className="font-display text-lg font-bold">Astro Services</div>
           </div>

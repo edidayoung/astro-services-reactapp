@@ -44,16 +44,28 @@ function Index() {
               </p>
             </motion.div>
 
-            {/* Loading State */}
+            {/* Loading State - Enhanced skeleton for New Arrivals */}
             {isLoading && (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {[...Array(8)].map((_, i) => (
-                  <div key={i} className="rounded-2xl border border-border/50 bg-surface/30 backdrop-blur p-5">
-                    <Skeleton className="aspect-square w-full mb-4" />
-                    <Skeleton className="h-4 w-3/4 mb-2" />
-                    <Skeleton className="h-4 w-full mb-2" />
-                    <Skeleton className="h-6 w-1/2" />
-                  </div>
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05, duration: 0.3 }}
+                    className="rounded-2xl border border-border/50 bg-surface/30 backdrop-blur p-5"
+                  >
+                    <Skeleton className="aspect-square w-full mb-4 rounded-xl" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-full" />
+                      <Skeleton className="h-3 w-5/6" />
+                      <div className="flex items-center justify-between pt-2">
+                        <Skeleton className="h-6 w-24" />
+                        <Skeleton className="h-9 w-9 rounded-lg" />
+                      </div>
+                    </div>
+                  </motion.div>
                 ))}
               </div>
             )}

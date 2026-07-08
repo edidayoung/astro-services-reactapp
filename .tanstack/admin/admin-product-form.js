@@ -1,4 +1,4 @@
-// Admin Product Form - Dynamic subcategory and brand management
+ // Admin Product Form - Dynamic subcategory and brand management
 // Handles showing/hiding fields based on category and platform selection
 
 (function() {
@@ -184,7 +184,7 @@
             }
         });
 
-        // Handle subcategory change (for smartphones)
+        // Handle subcategory change (for smartphones and laptops)
         subcategorySelect.addEventListener('change', function() {
             const subcategory = this.value;
             const category = categorySelect.value;
@@ -201,10 +201,15 @@
             if (category === 'smartphones') {
                 // Show brand field for Android
                 if (subcategory === 'android') {
-                    showBrandField();
+                    showBrandField('android');
                 } else {
                     hideBrandField();
                 }
+            } else if (category === 'laptops') {
+                // Show brand field for all laptop subcategories
+                showBrandField('laptop');
+            } else {
+                hideBrandField();
             }
         });
 
@@ -252,14 +257,14 @@
         }
 
         // Show brand field
-        function showBrandField() {
+        function showBrandField(type = 'android') {
             brandGroup.style.display = 'block';
             // Trigger animation
             setTimeout(() => {
                 brandGroup.classList.add('show');
             }, 10);
             brandSelect.required = true;
-            populateBrandOptions();
+            populateBrandOptions(type);
         }
 
         // Hide brand field
@@ -273,10 +278,15 @@
         }
 
         // Populate brand options
-        function populateBrandOptions() {
+        function populateBrandOptions(type = 'android') {
             brandSelect.innerHTML = '<option value="">Select Brand</option>';
             
-            const brands = SubcategoryConfig.getAndroidBrands();
+            let brands;
+            if (type === 'laptop') {
+                brands = SubcategoryConfig.getLaptopBrands();
+            } else {
+                brands = SubcategoryConfig.getAndroidBrands();
+            }
             
             // Filter out 'all' option
             const validBrands = brands.filter(brand => brand !== 'all');
@@ -322,10 +332,17 @@
                     return false;
                 }
 
-                // Validate brand for Android smartphones
+                // Validate brand for Android smartphones and Laptops
                 if (category === 'smartphones' && platform === 'android' && !brand) {
                     e.preventDefault();
                     showToast('Please select a brand for Android smartphones', 'error');
+                    brandSelect.focus();
+                    return false;
+                }
+                
+                if (category === 'laptops' && !brand) {
+                    e.preventDefault();
+                    showToast('Please select a brand for laptops', 'error');
                     brandSelect.focus();
                     return false;
                 }
@@ -353,9 +370,9 @@
             if (productData.platform) {
                 platformSelect.value = productData.platform;
                 
-                // Show brand field if Android
+                // Show brand field if Android smartphone
                 if (productData.platform === 'android') {
-                    showBrandField();
+                    showBrandField('android');
                     
                     // Set brand
                     if (productData.brand) {
@@ -363,6 +380,18 @@
                             brandSelect.value = productData.brand;
                         }, 150);
                     }
+                }
+            }
+            
+            // Show brand field for laptops
+            if (productData.category === 'laptops') {
+                showBrandField('laptop');
+                
+                // Set brand
+                if (productData.brand) {
+                    setTimeout(() => {
+                        brandSelect.value = productData.brand;
+                    }, 150);
                 }
             }
         }
