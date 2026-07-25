@@ -562,8 +562,7 @@ export function getDisplayName(value: string): string {
     'msi': 'MSI',
     'alienware': 'Alienware',
     // Common
-    'fairly-used': 'Fairly Used',
-    'others': 'Others'
+    'fairly-used': 'Fairly Used'
   };
   return displayNames[value] || value;
 }
