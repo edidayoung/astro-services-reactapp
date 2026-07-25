@@ -23,6 +23,16 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -68,6 +78,9 @@ function ReviewsContent() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [ratingFilter, setRatingFilter] = useState<string>('all');
   const [selectedReviews, setSelectedReviews] = useState<Set<string>>(new Set());
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [reviewToDelete, setReviewToDelete] = useState<Review | null>(null);
 
   // Filter reviews
   const filteredReviews = reviews?.filter(review => {
@@ -189,9 +202,16 @@ function ReviewsContent() {
 
   const handleDelete = (review: Review) => {
     if (!review.id) return;
-    if (confirm(`Are you sure you want to delete the review by "${review.name}"?`)) {
-      deleteMutation.mutate(review.id);
-    }
+    setReviewToDelete(review);
+    setDeleteDialogOpen(true);
+  };
+
+  // Confirm delete single review
+  const confirmDelete = () => {
+    if (!reviewToDelete?.id) return;
+    deleteMutation.mutate(reviewToDelete.id);
+    setDeleteDialogOpen(false);
+    setReviewToDelete(null);
   };
 
   // Handle selection
@@ -226,9 +246,13 @@ function ReviewsContent() {
 
   const handleBulkDelete = () => {
     if (selectedReviews.size === 0) return;
-    if (confirm(`Are you sure you want to delete ${selectedReviews.size} review(s)?`)) {
-      bulkDeleteMutation.mutate(Array.from(selectedReviews));
-    }
+    setBulkDeleteDialogOpen(true);
+  };
+
+  // Confirm bulk delete
+  const confirmBulkDelete = () => {
+    bulkDeleteMutation.mutate(Array.from(selectedReviews));
+    setBulkDeleteDialogOpen(false);
   };
 
   return (
@@ -431,6 +455,50 @@ function ReviewsContent() {
           ))}
         </div>
       )}
+      
+      {/* Delete Single Review Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Review?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the review by "<span className="font-semibold text-foreground">{reviewToDelete?.name}</span>"? 
+              This action cannot be undone and will permanently remove this review.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              Delete Review
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Dialog */}
+      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedReviews.size} Reviews?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedReviews.size} selected review{selectedReviews.size !== 1 ? 's' : ''}? 
+              This action cannot be undone and will permanently remove these reviews.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmBulkDelete}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              Delete {selectedReviews.size} Review{selectedReviews.size !== 1 ? 's' : ''}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

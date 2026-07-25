@@ -24,7 +24,7 @@ const categories = [
 const linksBeforeCategories = [
   { label: "New Arrivals", href: "/#new-arrivals", icon: Sparkles, isHash: true },
   { label: "Reviews", href: "/#reviews", icon: Star, isHash: true },
-  { label: "AstroFix", href: "/category/astrofix", icon: Wrench, isHash: false },
+  { label: "AstroFix", href: "/astrofix", icon: Wrench, isHash: false },
 ];
 
 const linksAfterCategories = [

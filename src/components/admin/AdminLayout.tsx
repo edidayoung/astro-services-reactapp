@@ -1,4 +1,4 @@
-import { useState, ReactNode } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
 import { Link, useLocation } from '@tanstack/react-router';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,6 +15,12 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useReviews } from '@/lib/hooks/useReviews';
 import { cn } from '@/lib/utils';
 
@@ -26,7 +32,17 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const { logout, sessionTimeRemaining } = useAuth();
   const { data: reviews } = useReviews();
   const location = useLocation();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  
+  // Load sidebar state from localStorage
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    const saved = localStorage.getItem('admin-sidebar-collapsed');
+    return saved === 'true';
+  });
+
+  // Save sidebar state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('admin-sidebar-collapsed', String(sidebarCollapsed));
+  }, [sidebarCollapsed]);
 
   const pendingReviews = reviews?.filter(r => !r.approved).length || 0;
 
@@ -42,7 +58,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const navItems = [
     { path: '/admin', icon: Home, label: 'Overview' },
     { path: '/admin/products', icon: Package, label: 'Products' },
-    { path: '/admin/reviews', icon: MessageSquare, label: 'Reviews', badge: pendingReviews },
+    { path: '/admin/reviews', icon: MessageSquare, label: 'Reviews', badge: pendingReviews > 0 ? pendingReviews : undefined },
     { path: '/admin/repairs', icon: Wrench, label: 'Repairs' },
     { path: '/admin/analytics', icon: TrendingUp, label: 'Analytics' },
     { path: '/admin/ai-insights', icon: Sparkles, label: 'AI Insights' },
@@ -57,121 +73,159 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Sidebar */}
-      <aside 
-        className={cn(
-          "hidden lg:flex flex-col fixed h-screen border-r border-border/50 bg-surface/30 transition-all duration-300 z-40",
-          sidebarCollapsed ? "w-16" : "w-64"
-        )}
-      >
-        {/* Logo */}
-        <div 
-          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="flex h-16 items-center gap-3 border-b border-border/50 px-4 flex-shrink-0 cursor-pointer hover:bg-surface/50 transition-colors"
-        >
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 flex-shrink-0">
-            <Package className="h-6 w-6 text-white" />
-          </div>
-          {!sidebarCollapsed && (
-            <motion.div 
-              initial={{ opacity: 0, width: 0 }}
-              animate={{ opacity: 1, width: 'auto' }}
-              exit={{ opacity: 0, width: 0 }}
-              className="overflow-hidden"
-            >
-              <h1 className="text-sm font-bold whitespace-nowrap">Admin Portal</h1>
-              <p className="text-xs text-muted-foreground whitespace-nowrap">Astro Services</p>
-            </motion.div>
+    <TooltipProvider delayDuration={300}>
+      <div className="flex min-h-screen bg-background">
+        {/* Sidebar */}
+        <aside 
+          className={cn(
+            "hidden lg:flex flex-col fixed h-screen border-r border-border/50 bg-surface/30 transition-all duration-300 z-40",
+            sidebarCollapsed ? "w-16" : "w-64"
           )}
-        </div>
+        >
+          {/* Logo */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div 
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="flex h-16 items-center gap-3 border-b border-border/50 px-4 flex-shrink-0 cursor-pointer hover:bg-surface/50 transition-colors"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 flex-shrink-0">
+                  <Package className="h-6 w-6 text-white" />
+                </div>
+                {!sidebarCollapsed && (
+                  <motion.div 
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <h1 className="text-sm font-bold whitespace-nowrap">Admin Portal</h1>
+                    <p className="text-xs text-muted-foreground whitespace-nowrap">Astro Services</p>
+                  </motion.div>
+                )}
+              </div>
+            </TooltipTrigger>
+            {sidebarCollapsed && (
+              <TooltipContent side="right">
+                <p>Click to expand sidebar</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
 
-        {/* Navigation */}
-        <nav className="flex-1 space-y-1 p-2 overflow-y-auto">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.path);
-            
-            return (
-              <Link key={item.path} to={item.path} className="block">
-                <Button 
-                  variant="ghost" 
+          {/* Navigation */}
+          <nav className="flex-1 space-y-1 p-2 overflow-y-auto">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.path);
+              
+              return (
+                <Tooltip key={item.path}>
+                  <TooltipTrigger asChild>
+                    <Link to={item.path} className="block">
+                      <Button 
+                        variant="ghost" 
+                        className={cn(
+                          "w-full gap-3 transition-colors relative",
+                          sidebarCollapsed ? "justify-center px-2" : "justify-start",
+                          active 
+                            ? "bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300" 
+                            : "hover:bg-surface"
+                        )}
+                      >
+                        <Icon className="h-4 w-4 flex-shrink-0" />
+                        {!sidebarCollapsed && (
+                          <>
+                            <span>{item.label}</span>
+                            {item.badge && item.badge > 0 && (
+                              <Badge variant="destructive" className="ml-auto">{item.badge}</Badge>
+                            )}
+                          </>
+                        )}
+                        {/* Only show badge indicator when collapsed AND there are pending items */}
+                        {sidebarCollapsed && item.badge && item.badge > 0 && (
+                          <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px] font-bold">
+                            {item.badge > 99 ? '99+' : item.badge}
+                          </Badge>
+                        )}
+                      </Button>
+                    </Link>
+                  </TooltipTrigger>
+                  {sidebarCollapsed && (
+                    <TooltipContent side="right">
+                      <p>{item.label}</p>
+                      {item.badge && item.badge > 0 && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {item.badge} pending
+                        </p>
+                      )}
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              );
+            })}
+          </nav>
+
+          {/* Session Info - Fixed at bottom */}
+          <div className="border-t border-border/50 p-2 flex-shrink-0">
+            {!sidebarCollapsed && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2 px-2">
+                <Clock className="h-3 w-3" />
+                Session: {formatTime(sessionTimeRemaining)}
+              </div>
+            )}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={logout}
+                  variant="outline"
+                  size="sm"
                   className={cn(
-                    "w-full gap-3 transition-colors relative",
-                    sidebarCollapsed ? "justify-center px-2" : "justify-start",
-                    active 
-                      ? "bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300" 
-                      : "hover:bg-surface"
+                    "w-full gap-2 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/50 transition-colors",
+                    sidebarCollapsed && "justify-center px-2"
                   )}
                 >
-                  <Icon className="h-4 w-4 flex-shrink-0" />
-                  {!sidebarCollapsed && (
-                    <>
-                      <span>{item.label}</span>
-                      {item.badge && item.badge > 0 && (
-                        <Badge variant="destructive" className="ml-auto">{item.badge}</Badge>
-                      )}
-                    </>
-                  )}
-                  {sidebarCollapsed && item.badge && item.badge > 0 && (
-                    <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                      {item.badge}
-                    </Badge>
-                  )}
+                  <LogOut className="h-4 w-4" />
+                  {!sidebarCollapsed && "Logout"}
                 </Button>
-              </Link>
-            );
-          })}
-        </nav>
+              </TooltipTrigger>
+              {sidebarCollapsed && (
+                <TooltipContent side="right">
+                  <p>Logout</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formatTime(sessionTimeRemaining)} remaining
+                  </p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </div>
+        </aside>
 
-        {/* Session Info - Fixed at bottom */}
-        <div className="border-t border-border/50 p-2 flex-shrink-0">
-          {!sidebarCollapsed && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2 px-2">
-              <Clock className="h-3 w-3" />
-              Session: {formatTime(sessionTimeRemaining)}
-            </div>
+        {/* Main Content */}
+        <div 
+          className={cn(
+            "flex-1 transition-all duration-300",
+            sidebarCollapsed ? "lg:ml-16" : "lg:ml-64"
           )}
-          <Button
-            onClick={logout}
-            variant="outline"
-            size="sm"
-            className={cn(
-              "w-full gap-2 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/50 transition-colors",
-              sidebarCollapsed && "justify-center px-2"
-            )}
-          >
-            <LogOut className="h-4 w-4" />
-            {!sidebarCollapsed && "Logout"}
-          </Button>
+        >
+          {/* Top Bar - Mobile */}
+          <header className="flex lg:hidden h-16 items-center justify-between border-b border-border/50 bg-surface/30 px-4">
+            <h1 className="text-lg font-bold">Admin Portal</h1>
+            <Button
+              onClick={logout}
+              variant="ghost"
+              size="sm"
+              className="hover:bg-red-500/10 hover:text-red-500"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </header>
+
+          {/* Page Content */}
+          <main className="min-h-screen">
+            {children}
+          </main>
         </div>
-      </aside>
-
-      {/* Main Content */}
-      <div 
-        className={cn(
-          "flex-1 transition-all duration-300",
-          sidebarCollapsed ? "lg:ml-16" : "lg:ml-64"
-        )}
-      >
-        {/* Top Bar - Mobile */}
-        <header className="flex lg:hidden h-16 items-center justify-between border-b border-border/50 bg-surface/30 px-4">
-          <h1 className="text-lg font-bold">Admin Portal</h1>
-          <Button
-            onClick={logout}
-            variant="ghost"
-            size="sm"
-            className="hover:bg-red-500/10 hover:text-red-500"
-          >
-            <LogOut className="h-4 w-4" />
-          </Button>
-        </header>
-
-        {/* Page Content */}
-        <main className="min-h-screen">
-          {children}
-        </main>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }

@@ -1,3 +1,5 @@
 node_modules
 .kiro/
 docs
+pre-deploy.bat
+pre-deploy.sh

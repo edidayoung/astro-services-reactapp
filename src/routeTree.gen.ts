@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AstrofixRouteImport } from './routes/astrofix'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as CategoryCategoryIdRouteImport } from './routes/category/$categoryId'
@@ -20,6 +21,11 @@ import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin/analytics'
 import { Route as AdminAiInsightsRouteImport } from './routes/admin/ai-insights'
 
+const AstrofixRoute = AstrofixRouteImport.update({
+  id: '/astrofix',
+  path: '/astrofix',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -73,6 +79,7 @@ const AdminAiInsightsRoute = AdminAiInsightsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/astrofix': typeof AstrofixRoute
   '/admin/ai-insights': typeof AdminAiInsightsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/login': typeof AdminLoginRoute
@@ -85,6 +92,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/astrofix': typeof AstrofixRoute
   '/admin/ai-insights': typeof AdminAiInsightsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/login': typeof AdminLoginRoute
@@ -98,6 +106,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/astrofix': typeof AstrofixRoute
   '/admin/ai-insights': typeof AdminAiInsightsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/login': typeof AdminLoginRoute
@@ -112,6 +121,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/astrofix'
     | '/admin/ai-insights'
     | '/admin/analytics'
     | '/admin/login'
@@ -124,6 +134,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/astrofix'
     | '/admin/ai-insights'
     | '/admin/analytics'
     | '/admin/login'
@@ -136,6 +147,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/astrofix'
     | '/admin/ai-insights'
     | '/admin/analytics'
     | '/admin/login'
@@ -149,6 +161,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AstrofixRoute: typeof AstrofixRoute
   AdminAiInsightsRoute: typeof AdminAiInsightsRoute
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminLoginRoute: typeof AdminLoginRoute
@@ -162,6 +175,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/astrofix': {
+      id: '/astrofix'
+      path: '/astrofix'
+      fullPath: '/astrofix'
+      preLoaderRoute: typeof AstrofixRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -237,6 +257,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AstrofixRoute: AstrofixRoute,
   AdminAiInsightsRoute: AdminAiInsightsRoute,
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminLoginRoute: AdminLoginRoute,

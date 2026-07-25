@@ -76,20 +76,67 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Astro Services — Premium Electronics Store in Nigeria" },
-      { name: "description", content: "Shop premium phones, laptops, audio, gaming and smart devices at unbeatable prices. Free delivery nationwide." },
+      { title: "Astro Services - Premium Electronics | Smartphones, Laptops & Audio" },
+      { name: "description", content: "Shop premium electronics at Astro Services. Find the latest smartphones, laptops, gaming gear, audio equipment, and accessories. Quality products, unbeatable prices, and excellent customer service in Nigeria." },
+      { name: "keywords", content: "electronics store, smartphones Nigeria, laptops Nigeria, gaming gear, audio equipment, mobile phones, MacBook, iPhone, Samsung, premium electronics, Akwa Ibom electronics" },
       { name: "author", content: "Astro Services" },
-      { property: "og:title", content: "Astro Services — Premium Electronics Store" },
-      { property: "og:description", content: "Your one-stop hub for premium electronics. Free delivery, warranty, 24/7 support." },
+      { name: "robots", content: "index, follow" },
+      
+      // Open Graph Meta Tags
+      { property: "og:title", content: "Astro Services - Premium Electronics" },
+      { property: "og:site_name", content: "Astro Services" },
+      { property: "og:description", content: "Your one-stop shop for premium electronics. Discover the latest smartphones, laptops, gaming gear, and audio equipment at unbeatable prices." },
+      { property: "og:image", content: "https://astroigadgets.xyz/hero-products.png" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://astroigadgets.xyz/" },
+      { property: "og:locale", content: "en_US" },
+      
+      // Twitter Card Meta Tags
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@AstroServices" },
+      { name: "twitter:title", content: "Astro Services - Premium Electronics" },
+      { name: "twitter:description", content: "Your one-stop shop for premium electronics. Smartphones, laptops, audio equipment, and accessories at unbeatable prices." },
+      { name: "twitter:image", content: "https://astroigadgets.xyz/hero-products.png" },
+      
+      // PWA Meta Tags
+      { name: "theme-color", content: "#8B5CF6" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Astro Services" },
     ],
     links: [
       {
         rel: "icon",
         type: "image/svg+xml",
         href: "/favicon.svg",
+      },
+      {
+        rel: "icon",
+        type: "image/png",
+        sizes: "192x192",
+        href: "/icon-192.png",
+      },
+      {
+        rel: "icon",
+        type: "image/png",
+        sizes: "512x512",
+        href: "/icon-512.png",
+      },
+      {
+        rel: "apple-touch-icon",
+        sizes: "180x180",
+        href: "/icon-192.png",
+      },
+      {
+        rel: "canonical",
+        href: "https://astroigadgets.xyz/",
+      },
+      {
+        rel: "manifest",
+        href: "/manifest.json",
       },
       {
         rel: "stylesheet",
@@ -107,6 +154,46 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap",
+      },
+    ],
+    scripts: [
+      // Google Analytics
+      {
+        type: "text/javascript",
+        src: "https://www.googletagmanager.com/gtag/js?id=G-1L74DSJWZ7",
+        async: true,
+      },
+      {
+        type: "text/javascript",
+        children: `
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-1L74DSJWZ7');
+        `,
+      },
+      // Structured Data (JSON-LD)
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Store",
+          "name": "Astro Services",
+          "description": "Your one-stop shop for premium electronics",
+          "url": "https://astroigadgets.xyz/",
+          "telephone": "+234-913-399-3369",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Akwa Ibom",
+            "addressCountry": "NG"
+          },
+          "priceRange": "₦₦₦",
+          "image": "https://astroigadgets.xyz/hero-products.png",
+          "sameAs": [
+            "https://facebook.com/AstroEkpanya",
+            "https://wa.me/2349133993369"
+          ]
+        }),
       },
     ],
   }),

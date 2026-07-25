@@ -1,10 +1,15 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import heroImg from "@/assets/hero-products.png";
+import heroImg1 from "@/assets/hero-products.png";
+import heroImg2 from "@/assets/3stuff.png";
+import heroImg3 from "@/assets/TVastro.png";
+import heroImg4 from "@/assets/solar.png";
+import heroImg5 from "@/assets/All.png";
 import { useState, useEffect } from "react";
 
 const shopWords = ["Shop", "Plug", "Vault", "Spot", "Mart"];
+const heroImages = [heroImg1, heroImg2, heroImg3, heroImg4, heroImg5];
 
 export function Hero() {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -128,15 +133,44 @@ export function Hero() {
             />
           ))}
 
-          <motion.img
-            src={heroImg}
-            alt="Premium electronics: laptop, smartphone, headphones and JBL speaker"
-            width={1024}
-            height={1024}
-            className="relative z-10 max-h-[560px] w-full object-contain drop-shadow-[0_20px_60px_oklch(0.62_0.24_295/0.5)]"
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-          />
+          {/* Animated rotating hero images */}
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={currentWordIndex}
+              src={heroImages[currentWordIndex]}
+              alt="Premium electronics showcase"
+              width={1024}
+              height={1024}
+              className="relative z-10 max-h-[560px] w-full object-contain drop-shadow-[0_20px_60px_oklch(0.62_0.24_295/0.5)]"
+              initial={{ 
+                opacity: 0, 
+                scale: 0.85,
+                rotateY: -25,
+                filter: "blur(10px)"
+              }}
+              animate={{ 
+                opacity: 1, 
+                scale: 1,
+                rotateY: 0,
+                filter: "blur(0px)",
+                y: [0, -10, 0]
+              }}
+              exit={{ 
+                opacity: 0, 
+                scale: 1.1,
+                rotateY: 25,
+                filter: "blur(10px)",
+                transition: { duration: 0.6 }
+              }}
+              transition={{ 
+                opacity: { duration: 0.7 },
+                scale: { duration: 0.7 },
+                rotateY: { duration: 0.7 },
+                filter: { duration: 0.7 },
+                y: { duration: 5, repeat: Infinity, ease: "easeInOut" }
+              }}
+            />
+          </AnimatePresence>
 
           {/* Podium */}
           <div className="absolute bottom-4 left-1/2 h-3 w-[70%] -translate-x-1/2 rounded-full bg-gradient-primary opacity-70 blur-md" />
